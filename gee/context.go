@@ -18,6 +18,7 @@ type Context struct {
 	//request info
 	Path   string
 	Method string
+	Params map[string]string
 
 	//response info
 	StatusCode int
@@ -68,4 +69,10 @@ func (c *Context) JSON(code int, obj interface{}) {
 	if err := encoder.Encode(obj); err != nil {
 		http.Error(c.Writer, err.Error(), 500)
 	}
+}
+
+//Param 获取动态参数
+func (c *Context) Param(key string) string {
+	val, _ := c.Params[key]
+	return val
 }
