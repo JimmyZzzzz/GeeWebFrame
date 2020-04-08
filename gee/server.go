@@ -2,6 +2,7 @@ package gee
 
 import (
 	"net/http"
+	"strings"
 )
 
 //Engine 引擎;
@@ -44,6 +45,11 @@ func (g *RouteGroup) Group(prefix string) *RouteGroup {
 	return newGroup
 }
 
+//Group add middlewares
+func (g *RouteGroup) Use(middleware ...HandlerFunc) {
+	g.handles = append(g.handles, middleware...)
+}
+
 //Group GET
 func (g *RouteGroup) GET(path string, handle HandlerFunc) {
 	path = g.prefix + path
@@ -79,6 +85,16 @@ func (engine *Engine) Run(addr string) error {
 
 //ServeHTTP 自定义Http请求处理函数
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	midHandles := make([]HandlerFunc, 0)
+
+	for _, group := range engine.groups {
+		if strings.HasPrefix(r.URL.Path, group.prefix) {
+			midHandles = append(midHandles, group.handles...)
+		}
+	}
+
 	c := newContext(w, r)
+	c.handles = midHandles
 	engine.route.handle(c)
 }

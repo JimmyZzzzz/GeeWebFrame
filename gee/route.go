@@ -24,11 +24,19 @@ func (r *router) handle(c *Context) {
 
 	if n != nil {
 		c.Params = param
-		n.handle(c)
+
+		c.handles = append(c.handles, n.handle)
+
 	} else {
-		fmt.Fprintf(c.Writer, "404 NOT FOUND: %s \n", c.Path)
+
+		c.handles = append(c.handles, func(c *Context) {
+			fmt.Fprintf(c.Writer, "404 NOT FOUND: %s \n", c.Path)
+
+		})
 
 	}
+
+	c.Next()
 
 }
 

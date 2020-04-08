@@ -22,15 +22,29 @@ type Context struct {
 
 	//response info
 	StatusCode int
+
+	//middleware
+	handles  []HandlerFunc
+	midindex int8
 }
 
 func newContext(w http.ResponseWriter, r *http.Request) *Context {
 	return &Context{
-		Writer: w,
-		Req:    r,
-		Path:   r.URL.Path,
-		Method: r.Method,
+		Writer:   w,
+		Req:      r,
+		Path:     r.URL.Path,
+		Method:   r.Method,
+		midindex: -1,
 	}
+}
+
+func (c *Context) Next() {
+	c.midindex++
+	s := int8(len(c.handles))
+	for ; c.midindex < s; c.midindex++ {
+		c.handles[c.midindex](c)
+	}
+
 }
 
 //PostForm post数据获取
